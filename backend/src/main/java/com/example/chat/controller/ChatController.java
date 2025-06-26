@@ -3,6 +3,8 @@ package com.example.chat.controller;
 import com.example.chat.model.Message; // Import the Message model
 import com.example.chat.repository.MessageRepository; // Import the MessageRepository
 import org.springframework.beans.factory.annotation.Autowired; // For dependency injection
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping; // For WebSocket message mapping
 import org.springframework.messaging.handler.annotation.Payload; // For extracting message payload
 import org.springframework.messaging.handler.annotation.SendTo; // For broadcasting messages over WebSocket
@@ -24,6 +26,14 @@ public class ChatController {
 
     @Autowired // Spring automatically injects an instance of MessageRepository.
     private MessageRepository messageRepository;
+    
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        // This endpoint will return an OK status as soon as the application context
+        // and web server are listening. It doesn't check MongoDB connection,
+        // but it's a quick way to tell Render the app process is responsive.
+        return new ResponseEntity<>("Backend is healthy!", HttpStatus.OK);
+    }
 
     /**
      * REST Endpoint: Retrieves all chat messages from the database.
