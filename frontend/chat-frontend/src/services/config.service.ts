@@ -21,7 +21,7 @@ export class ConfigService {
     // In a Dockerized Nginx setup, entrypoint.sh places config.json here.
     return this.http.get<RuntimeConfig>('/assets/config.json')
       .toPromise() // Convert the Observable to a Promise (suitable for APP_INITIALIZER)
-      .then((config: RuntimeConfig | null) => {
+      .then((config: any) => {
         this.config = config; // Store the loaded configuration
         // Merge runtime config properties into Angular's static environment object.
         // This makes BASE_URL available directly via `environment.BASE_URL`
