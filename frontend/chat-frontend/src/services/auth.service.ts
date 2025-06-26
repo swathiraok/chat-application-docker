@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { ConfigService } from "./config.service";
 
 @Injectable({
     providedIn: 'root'
@@ -9,10 +10,12 @@ import { Observable } from "rxjs";
 export class AuthService {
   // Base URL for your Spring Boot backend's authentication API.
   // Ensure this matches your backend's running address and port.
-  private readonly API_BASE_URL = 'http://localhost:8080';
+  private API_BASE_URL: string;
 
   // HttpClient is injected into the service's constructor, allowing it to make HTTP requests.
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private configService: ConfigService) {
+    this.API_BASE_URL = this.configService.getApiBaseUrl();
+   }
 
   /**
    * Sends a POST request to the backend to register a new user.

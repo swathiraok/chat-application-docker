@@ -4,6 +4,7 @@ import { Stomp, Client } from '@stomp/stompjs';
 import { HttpClient } from "@angular/common/http";
 import SockJS from 'sockjs-client';
 import { environment } from "../../environment";
+import { ConfigService } from "./config.service";
 
 interface Message {
     sender: string;
@@ -20,11 +21,12 @@ export class ChatService {
     private connectedSubject: ReplaySubject<boolean> = new ReplaySubject<boolean>(1); // To track WebSocket connection status
 
     // Base URL for your Spring Boot backend.
-    private readonly API_BASE_URL = environment.BASE_URL;
+    private API_BASE_URL: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private configService: ConfigService) {
         // Initialize connection status to false.
         this.connectedSubject.next(false);
+        this.API_BASE_URL = this.configService.getApiBaseUrl();
     }
 
     /**
@@ -50,12 +52,12 @@ export class ChatService {
         this.stompClient.reconnectDelay = 5000; // 5 seconds
 
         // Define connection callbacks.
-        this.stompClient.onConnect = (frame) => {
+        this.stompClient.onConnect = (frame: any) => {
             console.log('Connected to WebSocket!');
             this.connectedSubject.next(true); // Update connection status
 
             // Subscribe to the public chat topic ("/topic/public") to receive all chat messages.
-            this.stompClient?.subscribe('/topic/public', (message) => {
+            this.stompClient?.subscribe('/topic/public', (message: { body: string; }) => {
                 const receivedMessage: Message = JSON.parse(message.body); // Parse the message body (JSON string)
                 this.messageSubject.next(receivedMessage); // Emit the parsed message to subscribers
             });
@@ -65,13 +67,13 @@ export class ChatService {
         };
 
         // Define error handler for STOMP client.
-        this.stompClient.onStompError = (frame) => {
+        this.stompClient.onStompError = (frame: any) => {
             console.error('STOMP error:', frame);
             this.connectedSubject.next(false); // Update connection status
         };
 
         // Define close handler.
-        this.stompClient.onWebSocketClose = (event) => {
+        this.stompClient.onWebSocketClose = (event: any) => {
             console.log('WebSocket connection closed:', event);
             this.connectedSubject.next(false);
         };
@@ -91,7 +93,7 @@ export class ChatService {
             this.stompClient.deactivate().then(() => {
                 console.log('Disconnected from WebSocket.');
                 this.connectedSubject.next(false);
-            }).catch(error => {
+            }).catch((error: any) => {
                 console.error('Error during WebSocket deactivation:', error);
             });
         };

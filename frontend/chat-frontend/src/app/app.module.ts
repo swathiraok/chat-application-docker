@@ -7,6 +7,9 @@ import { ChatService } from '../services/chat.service';
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 
+function initializeApp(configService: ConfigService) {
+  return () => configService.loadConfig(); // Call the loadConfig method of ConfigService
+}
 @NgModule({
   declarations: [
     AppComponent
@@ -19,7 +22,13 @@ import { ConfigService } from '../services/config.service';
   providers: [
     ChatService,
     AuthService,
-    ConfigService
+    ConfigService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [ConfigService],
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

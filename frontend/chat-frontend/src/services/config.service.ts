@@ -2,27 +2,49 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../environment';
+interface RuntimeConfig {
+  BASE_URL: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
-   constructor(private http: HttpClient) { }
+  private config: RuntimeConfig | null = null;
+
+  constructor(private http: HttpClient) { }
 
   /**
    * Loads runtime configuration from config.json.
    * This method is called during application initialization.
    */
-  async load(): Promise<any> {
-    try {
-      // Fetch the config.json file from the root of the Nginx server.
-      const config = await lastValueFrom(this.http.get('/config.json'));
-      // Merge the fetched runtime configuration into Angular's environment object.
-      // This makes runtime variables accessible via environment.BASE_URL etc.
-      Object.assign(environment, config);
-      console.log('Runtime configuration loaded:', environment);
-    } catch (error) {
-      console.error('Failed to load runtime configuration:', error);
-      // Depending on your application's needs, you might want to throw the error
-      // or use default values if config loading fails.
+  loadConfig(): Promise<any> {
+    // Attempt to fetch config.json from the 'assets' folder of the deployed app.
+    // In a Dockerized Nginx setup, entrypoint.sh places config.json here.
+    return this.http.get<RuntimeConfig>('/assets/config.json')
+      .toPromise() // Convert the Observable to a Promise (suitable for APP_INITIALIZER)
+      .then((config: RuntimeConfig | null) => {
+        this.config = config; // Store the loaded configuration
+        // Merge runtime config properties into Angular's static environment object.
+        // This makes BASE_URL available directly via `environment.BASE_URL`
+        // or through this service's `getApiBaseUrl()` method.
+        Object.assign(environment, this.config);
+        console.log('Runtime config loaded:', environment);
+      })
+      .catch((error: any) => {
+        console.error('Error loading configuration:', error);
+        // Fallback: If config.json fails to load (e.g., during local 'ng serve' where it might not exist),
+        // default to localhost. This is crucial for local development without Docker Compose.
+        environment.BASE_URL = environment.BASE_URL || 'http://localhost:8080';
+        console.warn('Falling back to default API_BASE_URL:', environment.BASE_URL);
+      });
     }
+
+    /**
+   * Provides the loaded base URL for other services to use.
+   * This method should be called by AuthService and ChatService to get the backend URL.
+   */
+  getApiBaseUrl(): string {
+    // Return the loaded BASE_URL, or fall back to the environment.BASE_URL (for local dev)
+    // or a hardcoded default if all else fails.
+    return this.config?.BASE_URL || environment.BASE_URL || 'http://localhost:8080';
   }
 }
