@@ -1,0 +1,78 @@
+# File: chat application/docker-compose.yml
+# This Docker Compose file defines and links all services for your chat application.
+
+version: '3.8' # Specify the Docker Compose file format version
+
+services:
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:6.0.4 # Use a specific stable MongoDB image
+    container_name: mongodb # Assign a fixed name to the container
+    hostname: mongodb # Set hostname for internal Docker network discovery
+    restart: always # Ensure the container restarts automatically
+    # IMPORTANT CHANGE: Run as standalone with authentication enabled.
+    # Removed --replSet rs0 to avoid the keyFile requirement for quick debugging.
+    command: mongod --auth --bind_ip_all
+    environment:
+      # These environment variables are NOT processed when 'command' is overridden.
+      # You will manually create the user after MongoDB starts.
+      MONGO_INITDB_DATABASE: admin
+      MONGO_INITDB_ROOT_USERNAME: chatuser
+      MONGO_INITDB_ROOT_PASSWORD: chatpassword
+    ports:
+      - "27017:27017" # Map container port 27017 to host port 27017 (for local tools like Mongo Compass)
+    volumes:
+      - mongodb_data:/data/db # Using a named volume for persistent data
+    # Healthcheck and depends_on are still commented out for now to facilitate faster debugging.
+    # We will re-enable them once authentication is confirmed.
+    # healthcheck:
+    #   test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok", "--authenticationDatabase", "admin", "-u", "chatuser", "-p", "chatpassword"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 60s
+
+  # Spring Boot Backend Service (dependencies commented out for isolated testing)
+  backend:
+    build:
+      context: ./backend # Path to your Spring Boot project directory
+    container_name: backend-service # Assign a fixed name to the container
+    hostname: backend-service # Set hostname for internal Docker network discovery
+    ports:
+      - "8080:8080" # Map container port 8080 to host port 8080
+    environment:
+      # Configure Spring Boot to connect to the MongoDB service using its Docker Compose service name.
+      SPRING_DATA_MONGODB_URI: mongodb://chatuser:chatpassword@mongodb:27017/chatdb?authSource=admin
+    # depends_on:
+    #   mongodb:
+    #     condition: service_healthy
+    restart: always
+
+  # Angular Frontend Service (dependencies commented out for isolated testing)
+ # Angular Frontend Service
+  frontend:
+    build:
+      context: ./frontend/chat-frontend # <--- CORRECTED: Point directly to Angular project root
+      # dockerfile: Dockerfile (Removed as redundant, Docker Compose finds it by default)
+    container_name: frontend-service # Assign a fixed name to the container
+    hostname: frontend-service # Set hostname for internal Docker network discovery
+    ports:
+      - "4200:80" # Map container port 80 (Nginx) to host port 4200
+    environment:
+      # Pass the backend API URL to the Angular frontend at runtime via entrypoint.sh.
+      # 'backend-service' here resolves to the Spring Boot container's IP within the Docker network.
+      # This BASE_URL will be written to /usr/share/nginx/html/assets/config.json
+      BASE_URL: http://backend-service:8080
+    depends_on:
+      - backend # Ensure backend starts before the frontend
+    restart: always # Ensure the container restarts automatically
+
+# Define networks (optional, Docker Compose creates a default bridge network if not specified)
+# networks:
+#   chat-network:
+#     driver: bridge
+
+# Define the named volume for MongoDB data persistence
+volumes:
+  mongodb_data:
+    driver: local # Specifies that Docker should manage this volume locally
