@@ -52,9 +52,13 @@ RUN dos2unix /etc/nginx/conf.d/default.conf
 # Create entrypoint.sh content directly using printf and ensure shell
 RUN printf '#!/bin/bash\n' > /entrypoint.sh \
     && printf 'set -e\n' >> /entrypoint.sh \
+    && printf 'echo "--- Running entrypoint.sh at container startup ---"\n' >> /entrypoint.sh \
     && printf 'echo "Creating config.json with BASE_URL: $BASE_URL"\n' >> /entrypoint.sh \
     && printf 'echo "{\\"BASE_URL\\": \\"$BASE_URL\\"}" > /usr/share/nginx/html/assets/config.json\n' >> /entrypoint.sh \
-    && printf 'echo "Starting Nginx..."\n' >> /entrypoint.sh \
+    && printf 'echo "--- Verify config.json creation and location ---"\n' >> /entrypoint.sh \
+    && printf 'ls -la /usr/share/nginx/html/assets/\n' >> /entrypoint.sh \
+    && printf 'cat /usr/share/nginx/html/assets/config.json\n' >> /entrypoint.sh \
+    && printf 'echo "--- Starting Nginx... ---"\n' >> /entrypoint.sh \
     && printf 'nginx -g '"'"'daemon off;'"'"'\n' >> /entrypoint.sh \
     && chmod +x /entrypoint.sh
 
