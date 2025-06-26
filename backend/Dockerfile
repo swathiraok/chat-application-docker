@@ -35,8 +35,7 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # 9. Copy the built JAR file from the 'build' stage into the runtime image.
-#    CRITICAL FIX: Changed JAR name to match the actual generated file.
-#    chat-0.0.1-SNAPSHOT-0.0.1-SNAPSHOT.jar
+#    'chat-0.0.1-SNAPSHOT-0.0.1-SNAPSHOT.jar' is the actual generated file name.
 COPY --from=build /app/target/chat-0.0.1-SNAPSHOT-0.0.1-SNAPSHOT.jar chat-app.jar
 
 # 10. Expose the port that the Spring Boot application listens on.

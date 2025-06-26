@@ -1,0 +1,56 @@
+# File: .github/workflows/frontend-ci.yml
+# This workflow automates the Continuous Integration process for the Angular Frontend.
+# It builds the Docker image and pushes it to Docker Hub on every push to the main branch.
+
+name: Frontend CI
+
+# Controls when the workflow will run
+on:
+  push:
+    # Trigger the workflow on pushes to the 'main' branch
+    branches:
+      - main
+    paths:
+      - 'frontend/chat-frontend/**' # Only trigger if changes are in the frontend directory
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build-and-push:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest # GitHub-hosted runner with Ubuntu operating system
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Step 1: Checkout the repository code
+      # Uses the 'actions/checkout' action to clone the repository to the runner.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Log in to Docker Hub
+      # Uses the 'docker/login-action' action to authenticate with Docker Hub.
+      # DOCKER_USERNAME and DOCKER_PASSWORD are GitHub Secrets, protecting your credentials.
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }} # Access GitHub Secret for Docker username
+          password: ${{ secrets.DOCKER_PASSWORD }} # Access GitHub Secret for Docker password
+
+      # Step 3: Build the Docker image for the frontend
+      # Builds the Docker image based on the Dockerfile located in frontend/chat-frontend.
+      # The '--tag' flag names and tags the image. We'll use 'your-docker-username/chat-frontend:latest'.
+      # IMPORTANT: Replace 'your-docker-username' with your actual Docker Hub username!
+      - name: Build and tag frontend Docker image
+        run: |
+          docker build \
+            --file ./frontend/chat-frontend/Dockerfile \
+            --tag swathiraok/chat-frontend:latest \
+            ./frontend/chat-frontend
+
+      # Step 4: Push the Docker image to Docker Hub
+      # Pushes the tagged image to the authenticated Docker Hub repository.
+      - name: Push frontend Docker image to Docker Hub
+        run: |
+          docker push swathiraok/chat-frontend:latest
