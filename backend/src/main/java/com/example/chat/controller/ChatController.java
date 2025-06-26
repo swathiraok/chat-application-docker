@@ -21,7 +21,7 @@ import java.util.List; // For returning lists of messages
 @RestController // Indicates this class provides RESTful services (e.g., for /api/messages).
 @Controller // Also required for Spring's WebSocket message handling (@MessageMapping).
 @RequestMapping("/api/messages") // Base path for REST endpoints in this controller.
-@CrossOrigin(origins = "http://localhost:4200") // Allows HTTP requests from the Angular frontend.
+@CrossOrigin(origins = "*") // Allows HTTP requests from the Angular frontend.
 public class ChatController {
 
     @Autowired // Spring automatically injects an instance of MessageRepository.

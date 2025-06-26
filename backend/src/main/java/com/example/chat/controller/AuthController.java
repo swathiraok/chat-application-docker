@@ -17,7 +17,7 @@ import java.util.Optional; // For optional user lookup
 
 @RestController // This annotation combines @Controller and @ResponseBody, indicating that this class handles REST requests.
 @RequestMapping("/api/auth") // Base path for all endpoints defined in this controller (e.g., /api/auth/register).
-@CrossOrigin(origins = "http://localhost:4200") // Allows requests from the Angular frontend running on localhost:4200.
+@CrossOrigin(origins = "*") // Allows requests from the Angular frontend running on localhost:4200.
                                                 // In production, this should be restricted to your frontend's domain.
 public class AuthController {
 
