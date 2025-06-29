@@ -18,7 +18,7 @@ stages:
 
 build_backend_image:
   stage: build_images
-  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
+  image: docker:20.10.24 # Changed image to a specific, stable Docker CLI version
   services:
     - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
@@ -36,7 +36,7 @@ build_backend_image:
 
 push_backend_image:
   stage: push_images
-  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
+  image: docker:20.10.24 # Changed image to a specific, stable Docker CLI version
   services:
     - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
@@ -54,7 +54,7 @@ push_backend_image:
 
 build_frontend_image:
   stage: build_images
-  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
+  image: docker:20.10.24 # Changed image to a specific, stable Docker CLI version
   services:
     - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
@@ -70,7 +70,7 @@ build_frontend_image:
 
 push_frontend_image:
   stage: push_images
-  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
+  image: docker:20.10.24 # Changed image to a specific, stable Docker CLI version
   services:
     - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
