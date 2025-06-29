@@ -27,7 +27,10 @@ build_backend_image:
   script:
     - 'echo "Building backend Docker image..."' # Added quotes
     - cd backend # Navigate into the backend directory
-    - docker build -t $DOCKER_IMAGE_BACKEND . # Build the backend image
+    # Added --no-cache and --progress=plain for more verbose build output
+    - 'docker build --no-cache --progress=plain -t $DOCKER_IMAGE_BACKEND .'
+    - 'echo "Docker build command finished. Listing images:"' # New line for debugging
+    - 'docker images' # New line: list images to confirm it was created
     - 'echo "Backend Docker image built: $DOCKER_IMAGE_BACKEND"' # Added quotes
   # Simplified rules to ensure it triggers on every push to 'main'
   rules:
@@ -62,7 +65,10 @@ build_frontend_image:
   script:
     - 'echo "Building frontend Docker image..."' # Added quotes
     - cd frontend/chat-frontend # Navigate into the frontend directory
-    - docker build -t $DOCKER_IMAGE_FRONTEND . # Build the frontend image
+    # Added --no-cache and --progress=plain for more verbose build output
+    - 'docker build --no-cache --progress=plain -t $DOCKER_IMAGE_FRONTEND .' # Build the frontend image
+    - 'echo "Docker build command finished. Listing images:"' # New line for debugging
+    - 'docker images' # New line: list images to confirm it was created
     - 'echo "Frontend Docker image built: $DOCKER_IMAGE_FRONTEND"' # Added quotes
   # Simplified rules to ensure it triggers on every push to 'main'
   rules:
