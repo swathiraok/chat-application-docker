@@ -20,7 +20,7 @@ build_backend_image:
   stage: build_images
   image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:latest-dind # Use Docker in Docker service for building images
+    - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
     # Login to Docker Hub before building/pushing
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
@@ -38,7 +38,7 @@ push_backend_image:
   stage: push_images
   image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:latest-dind
+    - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
   script:
@@ -56,7 +56,7 @@ build_frontend_image:
   stage: build_images
   image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:latest-dind
+    - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
   script:
@@ -72,7 +72,7 @@ push_frontend_image:
   stage: push_images
   image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:latest-dind
+    - docker:20.10.24-dind # Updated: Using a specific stable Docker in Docker version
   before_script:
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
   script:
