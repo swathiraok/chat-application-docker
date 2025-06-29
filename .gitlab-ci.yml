@@ -1,0 +1,89 @@
+# .gitlab-ci.yml for Chat Application CI/CD
+
+# Define global variables for the pipeline
+variables:
+  DOCKER_REGISTRY: docker.io
+  DOCKER_USERNAME_VAR: $DOCKER_USERNAME # Reference the CI/CD variable
+  DOCKER_PASSWORD_VAR: $DOCKER_PASSWORD # Reference the CI/CD variable
+  DOCKER_IMAGE_BACKEND: swathiraok/chat-backend:latest # Full image name for backend
+  DOCKER_IMAGE_FRONTEND: swathiraok/chat-frontend:latest # Full image name for frontend
+
+# Define the stages of your pipeline
+stages:
+  - build_images
+  - push_images
+
+# --- Backend CI/CD Jobs ---
+
+build_backend_image:
+  stage: build_images
+  image: docker:20.10.16-alpine # Use a Docker image with Docker CLI pre-installed
+  services:
+    - docker:20.10.16-dind # Use Docker in Docker service for building images
+  before_script:
+    # Login to Docker Hub before building/pushing
+    - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
+  script:
+    - 'echo "Building backend Docker image..."' # Added quotes
+    - cd backend # Navigate into the backend directory
+    - docker build -t $DOCKER_IMAGE_BACKEND . # Build the backend image
+    - 'echo "Backend Docker image built: $DOCKER_IMAGE_BACKEND"' # Added quotes
+  # Only run this job if changes are detected in the 'backend/' directory
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - backend/**/*
+
+push_backend_image:
+  stage: push_images
+  image: docker:20.10.16-alpine
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
+  script:
+    - 'echo "Pushing backend Docker image..."' # Added quotes
+    - docker push $DOCKER_IMAGE_BACKEND # Push the backend image
+    - 'echo "Backend Docker image pushed."' # Added quotes
+  # This job depends on the build job and only runs if the build was successful
+  needs: ["build_backend_image"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - backend/**/*
+
+# --- Frontend CI/CD Jobs ---
+
+build_frontend_image:
+  stage: build_images
+  image: docker:20.10.16-alpine
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
+  script:
+    - 'echo "Building frontend Docker image..."' # Added quotes
+    - cd frontend/chat-frontend # Navigate into the frontend directory
+    - docker build -t $DOCKER_IMAGE_FRONTEND . # Build the frontend image
+    - 'echo "Frontend Docker image built: $DOCKER_IMAGE_FRONTEND"' # Added quotes
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - frontend/chat-frontend/**/*
+
+push_frontend_image:
+  stage: push_images
+  image: docker:20.10.16-alpine
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
+  script:
+    - 'echo "Pushing frontend Docker image..."' # Added quotes
+    - docker push $DOCKER_IMAGE_FRONTEND # Push the frontend image
+    - 'echo "Frontend Docker image pushed."' # Added quotes
+  needs: ["build_frontend_image"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - frontend/chat-frontend/**/*
