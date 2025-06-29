@@ -1,82 +1,83 @@
-# .gitlab-ci.yml for Chat Application CI/CD
+    # .gitlab-ci.yml for Chat Application CI/CD
 
-# Define global variables for the pipeline
-variables:
-  DOCKER_REGISTRY: docker.io
-  DOCKER_USERNAME_VAR: $DOCKER_USERNAME # Reference the CI/CD variable
-  DOCKER_PASSWORD_VAR: $DOCKER_PASSWORD # Reference the CI/CD variable
-  # IMPORTANT: Replace "swathiraok" below with your actual Docker Hub username.
-  DOCKER_IMAGE_BACKEND: swathiraok/chat-backend:latest # Full image name for backend
-  DOCKER_IMAGE_FRONTEND: swathiraok/chat-frontend:latest # Full image name for frontend
+    # Define global variables for the pipeline
+    variables:
+      DOCKER_REGISTRY: docker.io
+      DOCKER_USERNAME_VAR: $DOCKER_USERNAME # Reference the CI/CD variable
+      DOCKER_PASSWORD_VAR: $DOCKER_PASSWORD # Reference the CI/CD variable
+      # IMPORTANT: Replace "swathiraok" below with your actual Docker Hub username.
+      DOCKER_IMAGE_BACKEND: swathiraok/chat-backend:latest # Full image name for backend
+      DOCKER_IMAGE_FRONTEND: swathiraok/chat-frontend:latest # Full image name for frontend
 
-# Define the stages of your pipeline
-# We now only need one stage for building and pushing
-stages:
-  - build_and_push_images
+    # Define the stages of your pipeline
+    # We now only need one stage for building and pushing
+    stages:
+      - build_and_push_images
 
-# --- Backend CI/CD Job (Build and Push Combined) ---
+    # --- Backend CI/CD Job (Build and Push Combined) ---
 
-build_and_push_backend_image:
-  stage: build_and_push_images # Assign to the new combined stage
-  image: docker:20.10.24 # Docker CLI image
-  services:
-    - docker:20.10.24-dind # Docker in Docker service
-  before_script:
-    # Login to Docker Hub before building/pushing
-    - 'echo "Logging in to Docker Hub..."' # Added quotes
-    - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
-    - 'echo "Docker login successful."' # Added quotes
-  script:
-    - 'echo "Navigating to backend directory and listing contents..."' # Added quotes
-    - cd backend # Navigate into the backend directory
-    - ls -la # List contents to verify Dockerfile/pom.xml presence
-    - 'echo "Building backend Docker image..."' # Added quotes
-    # Build the Docker image. --no-cache and --progress=plain for verbose output
-    - docker build --no-cache --progress=plain -t $DOCKER_IMAGE_BACKEND .
-    - 'echo "Docker build command finished for backend. Listing images:"' # Added quotes
-    - docker images # List images to confirm it was created
-    - 'echo "Backend Docker image built: $DOCKER_IMAGE_BACKEND"' # Added quotes
+    build_and_push_backend_image:
+      stage: build_and_push_images # Assign to the new combined stage
+      image: docker:20.10.24 # Docker CLI image
+      services:
+        - docker:20.10.24-dind # Docker in Docker service
+      before_script:
+        # Login to Docker Hub before building/pushing
+        - 'echo "Logging in to Docker Hub..."' # Added quotes
+        - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
+        - 'echo "Docker login successful."' # Added quotes
+      script:
+        - 'echo "Navigating to backend directory and listing contents..."' # Added quotes
+        - cd backend # Navigate into the backend directory
+        - ls -la # List contents to verify Dockerfile/pom.xml presence
+        - 'echo "Building backend Docker image..."' # Added quotes
+        # Build the Docker image. --no-cache and --progress=plain for verbose output
+        - docker build --no-cache --progress=plain -t $DOCKER_IMAGE_BACKEND .
+        - 'echo "Docker build command finished for backend. Listing images:"' # Added quotes
+        - docker images # List images to confirm it was created
+        - 'echo "Backend Docker image built: $DOCKER_IMAGE_BACKEND"' # Added quotes
+        
+        - 'echo "Pushing backend Docker image..."' # Added quotes
+        - docker push $DOCKER_IMAGE_BACKEND # Push the backend image
+        - 'echo "Backend Docker image pushed."' # Added quotes
+      # Rules to ensure it triggers on every push to 'main' affecting backend files
+      rules:
+        - if: '$CI_COMMIT_BRANCH == "main"'
+          changes:
+            - backend/**/*
+
+
+    # --- Frontend CI/CD Job (Build and Push Combined) ---
+
+    build_and_push_frontend_image:
+      stage: build_and_push_images # Assign to the new combined stage
+      image: docker:20.10.24 # Docker CLI image
+      services:
+        - docker:20.10.24-dind # Docker in Docker service
+      before_script:
+        # Login to Docker Hub before building/pushing
+        - 'echo "Logging in to Docker Hub..."' # Added quotes
+        - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
+        - 'echo "Docker login successful."' # Added quotes
+      script:
+        - 'echo "Navigating to frontend/chat-frontend..."' # Added quotes
+        - cd frontend/chat-frontend # Navigate into the frontend directory
+        - ls -la # List contents of current directory
+        - 'echo "Building frontend Docker image..."' # Added quotes
+        # Build the Docker image. --no-cache and --progress=plain for verbose output
+        - docker build --no-cache --progress=plain -t $DOCKER_IMAGE_FRONTEND .
+        - 'echo "Docker build command finished for frontend. Listing images:"' # Added quotes
+        - docker images # List images to confirm it was created
+        - 'echo "Frontend Docker image built: $DOCKER_IMAGE_FRONTEND"' # Added quotes
+
+        - 'echo "Pushing frontend Docker image..."' # Added quotes
+        - docker push $DOCKER_IMAGE_FRONTEND # Push the frontend image
+        - 'echo "Frontend Docker image pushed."' # Added quotes
+      # This job should wait for the backend to finish building/pushing
+      needs: ["build_and_push_backend_image"]
+      # Rules to ensure it triggers on every push to 'main' affecting frontend files
+      rules:
+        - if: '$CI_COMMIT_BRANCH == "main"'
+          changes:
+            - frontend/chat-frontend/**/*
     
-    - 'echo "Pushing backend Docker image..."' # Added quotes
-    - docker push $DOCKER_IMAGE_BACKEND # Push the backend image
-    - 'echo "Backend Docker image pushed."' # Added quotes
-  # Rules to ensure it triggers on every push to 'main' affecting backend files
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-
-
-# --- Frontend CI/CD Job (Build and Push Combined) ---
-
-build_and_push_frontend_image:
-  stage: build_and_push_images # Assign to the new combined stage
-  image: docker:20.10.24 # Docker CLI image
-  services:
-    - docker:20.10.24-dind # Docker in Docker service
-  before_script:
-    # Login to Docker Hub before building/pushing
-    - 'echo "Logging in to Docker Hub..."' # Added quotes
-    - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
-    - 'echo "Docker login successful."' # Added quotes
-  script:
-    - 'echo "Navigating to frontend/chat-frontend..."' # Added quotes
-    - cd frontend/chat-frontend # Navigate into the frontend directory
-    - ls -la # List contents of current directory
-    - 'echo "Building frontend Docker image..."' # Added quotes
-    # Build the Docker image. --no-cache and --progress=plain for verbose output
-    - docker build --no-cache --progress=plain -t $DOCKER_IMAGE_FRONTEND .
-    - 'echo "Docker build command finished for frontend. Listing images:"' # Added quotes
-    - docker images # List images to confirm it was created
-    - 'echo "Frontend Docker image built: $DOCKER_IMAGE_FRONTEND"' # Added quotes
-
-    - 'echo "Pushing frontend Docker image..."' # Added quotes
-    - docker push $DOCKER_IMAGE_FRONTEND # Push the frontend image
-    - 'echo "Frontend Docker image pushed."' # Added quotes
-  # This job should wait for the backend to finish building/pushing
-  needs: ["build_and_push_backend_image"]
-  # Rules to ensure it triggers on every push to 'main' affecting frontend files
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/chat-frontend/**/*
