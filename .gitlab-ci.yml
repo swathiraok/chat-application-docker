@@ -18,9 +18,9 @@ stages:
 
 build_backend_image:
   stage: build_images
-  image: docker:20.10.16-alpine # Use a Docker image with Docker CLI pre-installed
+  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:20.10.16-dind # Use Docker in Docker service for building images
+    - docker:latest-dind # Use Docker in Docker service for building images
   before_script:
     # Login to Docker Hub before building/pushing
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
@@ -36,9 +36,9 @@ build_backend_image:
 
 push_backend_image:
   stage: push_images
-  image: docker:20.10.16-alpine
+  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:20.10.16-dind
+    - docker:latest-dind
   before_script:
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
   script:
@@ -54,9 +54,9 @@ push_backend_image:
 
 build_frontend_image:
   stage: build_images
-  image: docker:20.10.16-alpine
+  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:20.10.16-dind
+    - docker:latest-dind
   before_script:
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
   script:
@@ -70,9 +70,9 @@ build_frontend_image:
 
 push_frontend_image:
   stage: push_images
-  image: docker:20.10.16-alpine
+  image: docker:latest-git # Changed image to a more stable and available version with Git and Docker CLI
   services:
-    - docker:20.10.16-dind
+    - docker:latest-dind
   before_script:
     - 'echo "$DOCKER_PASSWORD_VAR" | docker login -u "$DOCKER_USERNAME_VAR" --password-stdin $DOCKER_REGISTRY'
   script:
