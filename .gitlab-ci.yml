@@ -5,6 +5,7 @@ variables:
   DOCKER_REGISTRY: docker.io
   DOCKER_USERNAME_VAR: $DOCKER_USERNAME # Reference the CI/CD variable
   DOCKER_PASSWORD_VAR: $DOCKER_PASSWORD # Reference the CI/CD variable
+  # IMPORTANT: Replace "swathiraok" below with your actual Docker Hub username.
   DOCKER_IMAGE_BACKEND: swathiraok/chat-backend:latest # Full image name for backend
   DOCKER_IMAGE_FRONTEND: swathiraok/chat-frontend:latest # Full image name for frontend
 
@@ -28,11 +29,10 @@ build_backend_image:
     - cd backend # Navigate into the backend directory
     - docker build -t $DOCKER_IMAGE_BACKEND . # Build the backend image
     - 'echo "Backend Docker image built: $DOCKER_IMAGE_BACKEND"' # Added quotes
-  # Only run this job if changes are detected in the 'backend/' directory
+  # Simplified rules to ensure it triggers on every push to 'main'
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
+
 
 push_backend_image:
   stage: push_images
@@ -45,12 +45,10 @@ push_backend_image:
     - 'echo "Pushing backend Docker image..."' # Added quotes
     - docker push $DOCKER_IMAGE_BACKEND # Push the backend image
     - 'echo "Backend Docker image pushed."' # Added quotes
-  # This job depends on the build job and only runs if the build was successful
   needs: ["build_backend_image"]
+  # Simplified rules to ensure it triggers on every push to 'main'
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
 
 # --- Frontend CI/CD Jobs ---
 
@@ -66,10 +64,9 @@ build_frontend_image:
     - cd frontend/chat-frontend # Navigate into the frontend directory
     - docker build -t $DOCKER_IMAGE_FRONTEND . # Build the frontend image
     - 'echo "Frontend Docker image built: $DOCKER_IMAGE_FRONTEND"' # Added quotes
+  # Simplified rules to ensure it triggers on every push to 'main'
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/chat-frontend/**/*
 
 push_frontend_image:
   stage: push_images
@@ -83,7 +80,6 @@ push_frontend_image:
     - docker push $DOCKER_IMAGE_FRONTEND # Push the frontend image
     - 'echo "Frontend Docker image pushed."' # Added quotes
   needs: ["build_frontend_image"]
+  # Simplified rules to ensure it triggers on every push to 'main'
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/chat-frontend/**/*
